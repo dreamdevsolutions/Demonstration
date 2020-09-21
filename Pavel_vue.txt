@@ -1,0 +1,77 @@
+<template>
+  <div>
+    <v-container>
+      <v-alert v-if="error" type="error">
+        {{ error }}
+      </v-alert>
+      <v-form
+        ref="form"
+        v-model="valid"
+        lazy-validation
+      >
+        <v-text-field
+          v-model="email"
+          :rules="emailRules"
+          label="E-mail"
+          required
+        />
+        <v-text-field
+          type="password"
+          v-model="password"
+          :rules="passwordRules"
+          label="Password"
+          required
+        />
+        <v-btn
+          :disabled="!valid"
+          color="primary"
+          class="mr-4"
+          @click="validate"
+        >
+          Login
+        </v-btn>
+      </v-form>
+    </v-container>
+  </div>
+</template>
+<script>
+import * as firebase from 'firebase/app'
+import 'firebase/auth'
+import { mapActions } from 'vuex'
+export default {
+  name: 'Login',
+  data () {
+    return {
+      valid: false,
+      password: '',
+      email: '',
+      error: '',
+      emailRules: [
+        v => !!v || 'E-mail is required',
+        v => /.+@.+\..+/.test(v) || 'E-mail must be valid'
+      ],
+      passwordRules: [
+        v => !!v || 'Password is required'
+      ]
+    }
+  },
+  methods: {
+    ...mapActions({
+      toggleLoading: 'loader/toggleLoader'
+    }),
+    validate () {
+      this.$refs.form.validate() && this.login()
+    },
+    login: async function () {
+      this.toggleLoading()
+      try {
+        await firebase.auth().signInWithEmailAndPassword(this.email, this.password)
+        this.$router.replace({ name: 'Home' })
+      } catch (e) {
+        this.error = e
+      }
+      this.toggleLoading()
+    }
+  }
+}
+</script>
